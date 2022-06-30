@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_file/internet_file.dart';
 import 'package:pdfx/pdfx.dart';
+import 'package:test_pdf/device_info.dart';
 import 'package:test_pdf/edit_pdf/edit_pdf_bloc.dart';
 
 void main() {
@@ -38,24 +39,9 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage>
     with AutomaticKeepAliveClientMixin {
-  var widgetKey = GlobalKey();
   final List<Uint8List> _listImage = [];
   final pageController = PageController();
   int _currenctIndex = 2;
-
-  Widget image() {
-    return Container(
-      key: widgetKey,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: MemoryImage(_listImage[_currenctIndex]),
-        ),
-        border: Border.all(
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -65,11 +51,9 @@ class _TestPageState extends State<TestPage>
 
   @override
   Widget build(BuildContext context) {
-    if (_listImage.isNotEmpty) {
-      image();
-    }
     super.build(context);
     return Scaffold(
+      backgroundColor: const Color(0xFFE5E5E5),
       body: _listImage.isNotEmpty
           ? Drag(
               image: _listImage[_currenctIndex],
@@ -102,10 +86,6 @@ class _TestPageState extends State<TestPage>
     setState(() {});
   }
 
-  Size getSize() {
-    return widgetKey.currentContext!.size!;
-  }
-
   @override
   bool get wantKeepAlive => true;
 }
@@ -123,91 +103,95 @@ class Drag extends StatefulWidget {
 class _DragState extends State<Drag> {
   double top = 0;
   double left = 0;
-  var widgetKey = GlobalKey();
-  Size? _size;
+  final double _sizeQrCode = 50;
+  final double _a4Width = 2480;
+  final double _a4Height = 3508;
 
-  @override
-  void initState() {
-    getImageSize();
-    super.initState();
+  double getWidth() {
+    return MediaQuery.of(context).size.height * _a4Width / _a4Height;
+  }
+
+  double getHeight() {
+    return MediaQuery.of(context).size.height;
   }
 
   @override
   Widget build(BuildContext context) {
-    return _size == null
-        ? Container()
-        : Container(
-            key: widgetKey,
-            height: _size!.height,
-            width: _size!.width,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: MemoryImage(widget.image!),
-              ),
-              border: Border.all(
-                color: Colors.grey,
-              ),
+    return OrientationBuilder(builder: ((context, orientation) {
+      return Center(
+        child: Container(
+          width: orientation == Orientation.portrait ? getHeight() : getWidth(),
+          height:
+              orientation == Orientation.portrait ? getWidth() : getHeight(),
+          margin: const EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            image: DecorationImage(
+              image: MemoryImage(widget.image!),
             ),
-            alignment: Alignment.topLeft,
-            margin: const EdgeInsets.all(50),
-            child: Draggable(
-              child: Container(
-                padding: EdgeInsets.only(top: top, left: left),
-                child: DragItem(),
-              ),
-              feedback: Container(
-                padding: EdgeInsets.only(top: top, left: left),
-                child: DragItem(),
-              ),
-              childWhenDragging: Container(
-                padding: EdgeInsets.only(top: top, left: left),
-                child: DragItem(),
-              ),
-              onDragCompleted: () {},
-              onDragEnd: (drag) {
-                setState(() {
-                  if ((top + drag.offset.dy) > (getSize().height - 30.0)) {
-                    top = (getSize().height - 30.0);
-                  } else if ((top + drag.offset.dy - 30.0) < 0.0) {
-                    top = 0;
-                  } else {
-                    top = top + drag.offset.dy - 30.0;
-                  }
-                  if ((left + drag.offset.dx) > (getSize().width - 30.0)) {
-                    left = (getSize().width - 30.0);
-                  } else if ((left + drag.offset.dx - 30.0) < 0.0) {
-                    left = 0;
-                  } else {
-                    left = left + drag.offset.dx - 30.0;
-                  }
-                });
-              },
+          ),
+          child: GestureDetector(
+            child: Stack(
+              children: [
+                Positioned(
+                  top: top,
+                  left: left,
+                  child: DragItem(
+                    sizeQrCode: _sizeQrCode,
+                  ),
+                ),
+              ],
             ),
-          );
-  }
+            onVerticalDragUpdate: (drage) {
+              double height = orientation == Orientation.portrait
+                  ? getWidth()
+                  : getHeight();
+              double width = orientation == Orientation.portrait
+                  ? getHeight()
+                  : getWidth();
 
-  Size getSize() {
-    return widgetKey.currentContext!.size!;
-  }
+              setState(() {
+                if (drage.localPosition.dy >= 0 &&
+                    (drage.localPosition.dy + _sizeQrCode) <= height) {
+                  top = drage.localPosition.dy;
+                } else if (drage.localPosition.dy + _sizeQrCode > height) {
+                  if (DeviceInfo().isPhone() == false &&
+                      orientation == Orientation.landscape) {
+                    top = height - _sizeQrCode * 2.1;
+                  } else {
+                    top = height - _sizeQrCode;
+                  }
+                } else {
+                  top = 0;
+                }
 
-  getImageSize() async {
-    var decodedImage = await decodeImageFromList(widget.image!);
-    _size = Size(
-      decodedImage.width.toDouble(),
-      decodedImage.height.toDouble(),
-    );
-    setState(() {});
+                if (drage.localPosition.dx >= 0 &&
+                    drage.localPosition.dx + _sizeQrCode <= width) {
+                  left = drage.localPosition.dx;
+                } else if (drage.localPosition.dx + _sizeQrCode > width) {
+                  left = width - _sizeQrCode;
+                } else {
+                  left = 0;
+                }
+              });
+            },
+          ),
+        ),
+      );
+    }));
   }
 }
 
 class DragItem extends StatelessWidget {
-  const DragItem({Key? key}) : super(key: key);
+  final double? sizeQrCode;
+  const DragItem({Key? key, this.sizeQrCode}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      IconData(57744, fontFamily: 'MaterialIcons'),
-      size: 30,
+    return Container(
+      width: sizeQrCode,
+      height: sizeQrCode,
+      color: Colors.amber,
     );
   }
 }
