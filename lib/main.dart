@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: MaterialButton(
-          onPressed: () {
+          onPressed: () async {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -42,7 +42,14 @@ class HomePage extends StatelessWidget {
               ),
             );
           },
-          child: const Text('Next'),
+          child: Container(
+            color: Colors.green,
+            width: 100,
+            height: 50,
+            child: const Center(
+              child: Text('Next'),
+            ),
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ part of 'edit_pdf_bloc.dart';
 
 abstract class EditPdfState extends Equatable {
   final List<QrCodePostion>? list;
+
   final int? currentIndex;
   const EditPdfState({
     this.list,
@@ -25,10 +26,12 @@ class QrCodePostion {
   final double? dx;
   final double? dy;
   final bool? isHaveQrCode;
+  final Uint8List? imageByte;
 
   QrCodePostion({
     this.dx = 100,
     this.dy = 100,
     this.isHaveQrCode = false,
+    this.imageByte,
   });
 }
