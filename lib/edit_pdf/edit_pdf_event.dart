@@ -9,7 +9,17 @@ abstract class EditPdfEvent extends Equatable {
 
 class InitilPdf extends EditPdfEvent {
   final List<QrCodePostion>? list;
-  const InitilPdf({this.list});
+  final int? currentIndex;
+  const InitilPdf({
+    this.list,
+    this.currentIndex = 0,
+  });
+}
+
+class ChangePage extends EditPdfEvent {
+  final List<QrCodePostion>? list;
+  final int? currentIndex;
+  const ChangePage({this.list, this.currentIndex});
 }
 
 class ChangePdf extends EditPdfEvent {

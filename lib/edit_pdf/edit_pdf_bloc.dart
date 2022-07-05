@@ -9,14 +9,15 @@ class EditPdfBloc extends Bloc<EditPdfEvent, EditPdfState> {
     on<EditPdfEvent>((event, emit) {
       if (event is InitilPdf) {
         emit(EditPdfLoading());
-        emit(EditPdfSuccess(list: event.list));
+        emit(
+            EditPdfSuccess(list: event.list, currentIndex: event.currentIndex));
       }
       if (event is ChangePdf) {
         List<QrCodePostion>? list = state.list!;
 
         emit(EditPdfLoading());
         list[event.index!] = event.item!;
-        emit(EditPdfSuccess(list: list));
+        emit(EditPdfSuccess(list: list,currentIndex: event.index));
       }
     });
   }

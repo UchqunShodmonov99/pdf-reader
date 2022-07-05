@@ -2,10 +2,14 @@ part of 'edit_pdf_bloc.dart';
 
 abstract class EditPdfState extends Equatable {
   final List<QrCodePostion>? list;
-  const EditPdfState({this.list});
+  final int? currentIndex;
+  const EditPdfState({
+    this.list,
+    this.currentIndex,
+  });
 
   @override
-  List<Object> get props => [list!];
+  List<Object> get props => [list!, currentIndex!];
 }
 
 class EditPdfInitial extends EditPdfState {}
@@ -13,7 +17,8 @@ class EditPdfInitial extends EditPdfState {}
 class EditPdfLoading extends EditPdfState {}
 
 class EditPdfSuccess extends EditPdfState {
-  const EditPdfSuccess({List<QrCodePostion>? list}) : super(list: list);
+  const EditPdfSuccess({List<QrCodePostion>? list, int? currentIndex})
+      : super(list: list, currentIndex: currentIndex);
 }
 
 class QrCodePostion {
@@ -22,8 +27,8 @@ class QrCodePostion {
   final bool? isHaveQrCode;
 
   QrCodePostion({
-    this.dx = 0,
-    this.dy = 0,
-    this.isHaveQrCode=false,
+    this.dx = 100,
+    this.dy = 100,
+    this.isHaveQrCode = false,
   });
 }

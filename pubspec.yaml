@@ -39,6 +39,8 @@ dependencies:
   pdf: ^3.8.1
   flutter_bloc: ^8.0.1
   equatable: ^2.0.3
+  syncfusion_flutter_barcodes: ^20.2.36
+
 
 
 
