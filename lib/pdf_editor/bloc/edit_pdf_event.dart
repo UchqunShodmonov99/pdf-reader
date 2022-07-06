@@ -17,9 +17,17 @@ class InitilPdf extends EditPdfEvent {
 }
 
 class ChangePage extends EditPdfEvent {
-  final List<QrCodePostion>? list;
   final int? currentIndex;
-  const ChangePage({this.list, this.currentIndex});
+  const ChangePage({this.currentIndex});
+}
+
+class EditQrCode extends EditPdfEvent {
+  final int? index;
+  final bool? isHave;
+  const EditQrCode({
+    this.index,
+    this.isHave,
+  });
 }
 
 class ChangePdf extends EditPdfEvent {

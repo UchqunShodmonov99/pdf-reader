@@ -23,10 +23,10 @@ class EditPdfSuccess extends EditPdfState {
 }
 
 class QrCodePostion {
-  final double? dx;
-  final double? dy;
-  final bool? isHaveQrCode;
-  final Uint8List? imageByte;
+  double? dx;
+  double? dy;
+  bool? isHaveQrCode;
+  Uint8List? imageByte;
 
   QrCodePostion({
     this.dx = 100,

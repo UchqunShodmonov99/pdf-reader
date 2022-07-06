@@ -23,6 +23,22 @@ class EditPdfBloc extends Bloc<EditPdfEvent, EditPdfState> {
         list[event.index!] = event.item!;
         emit(EditPdfSuccess(list: list, currentIndex: event.index));
       }
+
+      if (event is ChangePage) {
+        List<QrCodePostion>? list = state.list!;
+        emit(EditPdfLoading());
+        emit(EditPdfSuccess(list: list, currentIndex: event.currentIndex));
+      }
+
+      if (event is EditQrCode) {
+        List<QrCodePostion>? list = state.list!;
+
+        emit(EditPdfLoading());
+        QrCodePostion item = list[event.index!];
+        item.isHaveQrCode = event.isHave!;
+        list[event.index!] = item;
+        emit(EditPdfSuccess(list: list, currentIndex: event.index));
+      }
     });
   }
 }
