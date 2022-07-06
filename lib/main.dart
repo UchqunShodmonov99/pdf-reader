@@ -59,7 +59,7 @@ class _GetPdfState extends State<GetPdf> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => PdfEditorPage(
-                            numberDoc: '32352345235',
+                            numberDoc: 'KQ41745638',
                             pdf: _file,
                           ),
                         ),
