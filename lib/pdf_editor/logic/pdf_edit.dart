@@ -12,6 +12,8 @@ import 'package:pdfx/pdfx.dart';
 import '../bloc/edit_pdf_bloc.dart';
 
 class PdfEdit {
+  final double _a4Width = pdf.PdfPageFormat.a4.width;
+  final double _a4Height = pdf.PdfPageFormat.a4.height;
   void savePdf({
     required EditPdfSuccess? state,
     required GlobalKey? key,
@@ -21,7 +23,7 @@ class PdfEdit {
     final pdfFile = pw.Document();
     final boundary =
         key!.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    final image = await boundary?.toImage();
+    final image = await boundary?.toImage(pixelRatio: 5);
     final byteData = await image?.toByteData(format: ImageByteFormat.png);
     final imageBytes = byteData?.buffer.asUint8List();
     if (imageBytes != null) {
@@ -29,8 +31,8 @@ class PdfEdit {
         pdfFile.addPage(
           pw.Page(
             pageFormat: pdf.PdfPageFormat(
-              getSize(key).width,
-              getSize(key).height,
+              _a4Width,
+              _a4Height,
             ),
             build: (context) {
               return pw.Expanded(
@@ -74,8 +76,9 @@ class PdfEdit {
     for (int i = 1; i <= document.pagesCount; i++) {
       final page = await document.getPage(i);
       final pageImage = await page.render(
-        width: page.width,
-        height: page.height,
+        width: page.width * 2,
+        height: page.height * 2,
+        format: PdfPageImageFormat.png,
       );
       _list.add(QrCodePostion(
         imageByte: pageImage!.bytes,
