@@ -16,6 +16,7 @@ class PdfEdit {
     required EditPdfSuccess? state,
     required GlobalKey? key,
     required BuildContext? context,
+    bool? back = false,
   }) async {
     final pdfFile = pw.Document();
     final boundary =
@@ -51,15 +52,24 @@ class PdfEdit {
         );
       }
       Uint8List _file = await pdfFile.save();
-      Navigator.pop(context!, {'pdf': _file});
-    } else {}
+      if (back!) {
+        Navigator.pop(context!, {'pdf': _file});
+      } else {
+        getPdfToImage(
+          context: context,
+          pdf: _file,
+          currentIndex: state.currentIndex,
+        );
+      }
+    }
   }
 
   Size getSize(GlobalKey key) {
     return key.currentContext!.size!;
   }
 
-  void getPdfToImage({BuildContext? context, Uint8List? pdf}) async {
+  void getPdfToImage(
+      {BuildContext? context, Uint8List? pdf, int? currentIndex = 0}) async {
     List<QrCodePostion> _list = [];
     final document = await PdfDocument.openData(pdf!);
 
@@ -71,13 +81,16 @@ class PdfEdit {
       );
       _list.add(QrCodePostion(
         imageByte: pageImage!.bytes,
-        dx: 100,
-        dy: 100,
+        dx: 0,
+        dy: 0,
         isHaveQrCode: false,
       ));
       await page.close();
     }
-    BlocProvider.of<EditPdfBloc>(context!).add(InitilPdf(list: _list));
+    BlocProvider.of<EditPdfBloc>(context!).add(InitilPdf(
+      list: _list,
+      currentIndex: currentIndex,
+    ));
     document.close();
   }
 }

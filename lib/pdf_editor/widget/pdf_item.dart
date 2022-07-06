@@ -35,13 +35,19 @@ class _PdfItemState extends State<PdfItem> {
               IconButton(
                 onPressed: () {
                   if (getIndex(state).isHaveQrCode!) {
+                    BlocProvider.of<EditPdfBloc>(context).add(
+                      EditQrCode(
+                        index: state.currentIndex!,
+                        isHave: false,
+                      ),
+                    );
+                  } else {
                     PdfEdit().savePdf(
                       state: state,
                       key: _key,
                       context: context,
+                      back: true,
                     );
-                  } else {
-                    Navigator.pop(context);
                   }
                 },
                 icon: const Icon(

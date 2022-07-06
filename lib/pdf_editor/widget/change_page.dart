@@ -23,7 +23,7 @@ class ChangePageWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buttonChangePage(next: false, state: state),
+              _buttonChangePage(next: false, state: state, context: context),
               const SizedBox(
                 width: 30,
               ),
@@ -31,7 +31,7 @@ class ChangePageWidget extends StatelessWidget {
               const SizedBox(
                 width: 30,
               ),
-              _buttonChangePage(next: true, state: state)
+              _buttonChangePage(next: true, state: state, context: context)
             ],
           ),
         ),
