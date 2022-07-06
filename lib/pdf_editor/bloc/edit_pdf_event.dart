@@ -7,10 +7,19 @@ abstract class EditPdfEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class InitilPdf extends EditPdfEvent {
+class ReloadPdf extends EditPdfEvent {
   final List<QrCodePostion>? list;
   final int? currentIndex;
-  const InitilPdf({
+  const ReloadPdf({
+    this.list,
+    this.currentIndex = 0,
+  });
+}
+
+class InitPdf extends EditPdfEvent {
+  final List<QrCodePostion>? list;
+  final int? currentIndex;
+  const InitPdf({
     this.list,
     this.currentIndex = 0,
   });

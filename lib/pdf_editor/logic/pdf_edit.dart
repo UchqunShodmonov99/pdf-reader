@@ -33,18 +33,12 @@ class PdfEdit {
               getSize(key).height,
             ),
             build: (context) {
-              return pw.Container(
-                padding: pw.EdgeInsets.zero,
-                margin: pw.EdgeInsets.zero,
-                width: getSize(key).width,
-                height: getSize(key).height,
-                decoration: pw.BoxDecoration(
-                  image: pw.DecorationImage(
-                    image: pw.MemoryImage(
-                      item.isHaveQrCode! ? imageBytes : item.imageByte!,
-                    ),
-                    fit: pw.BoxFit.contain,
+              return pw.Expanded(
+                child: pw.Image(
+                  pw.MemoryImage(
+                    item.isHaveQrCode! ? imageBytes : item.imageByte!,
                   ),
+                  fit: pw.BoxFit.contain,
                 ),
               );
             },
@@ -53,7 +47,7 @@ class PdfEdit {
       }
       Uint8List _file = await pdfFile.save();
       if (back!) {
-        Navigator.pop(context!, {'pdf': _file});
+        Navigator.pop(context!, _file);
       } else {
         getPdfToImage(
           context: context,
@@ -68,8 +62,12 @@ class PdfEdit {
     return key.currentContext!.size!;
   }
 
-  void getPdfToImage(
-      {BuildContext? context, Uint8List? pdf, int? currentIndex = 0}) async {
+  void getPdfToImage({
+    BuildContext? context,
+    Uint8List? pdf,
+    int? currentIndex = 0,
+    bool? isInit = false,
+  }) async {
     List<QrCodePostion> _list = [];
     final document = await PdfDocument.openData(pdf!);
 
@@ -87,10 +85,18 @@ class PdfEdit {
       ));
       await page.close();
     }
-    BlocProvider.of<EditPdfBloc>(context!).add(InitilPdf(
-      list: _list,
-      currentIndex: currentIndex,
-    ));
+    if (isInit!) {
+      BlocProvider.of<EditPdfBloc>(context!).add(InitPdf(
+        list: _list,
+        currentIndex: currentIndex,
+      ));
+    } else {
+      BlocProvider.of<EditPdfBloc>(context!).add(ReloadPdf(
+        list: _list,
+        currentIndex: currentIndex,
+      ));
+    }
+
     document.close();
   }
 }

@@ -18,7 +18,7 @@ class PdfItem extends StatefulWidget {
 }
 
 class _PdfItemState extends State<PdfItem> {
-  final double _sizeQrCode = 85;
+  final double _sizeQrCode = 75;
   final double _a4Width = pdf.PdfPageFormat.a4.width;
   final double _a4Height = pdf.PdfPageFormat.a4.height;
   final _key = GlobalKey();
@@ -42,12 +42,16 @@ class _PdfItemState extends State<PdfItem> {
                       ),
                     );
                   } else {
-                    PdfEdit().savePdf(
-                      state: state,
-                      key: _key,
-                      context: context,
-                      back: true,
-                    );
+                    if (state.listOld != state.list) {
+                      PdfEdit().savePdf(
+                        state: state,
+                        key: _key,
+                        context: context,
+                        back: true,
+                      );
+                    } else {
+                      Navigator.pop(context);
+                    }
                   }
                 },
                 icon: const Icon(
@@ -109,43 +113,40 @@ class _PdfItemState extends State<PdfItem> {
               _appBar(state, context),
               Expanded(
                 child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.all(15),
-                    child: RepaintBoundary(
-                      key: _key,
-                      child: Container(
-                        width: _a4Width,
-                        height: _a4Height,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          image: DecorationImage(
-                            image: MemoryImage(
-                              getIndex(state).imageByte!,
-                            ),
-                            fit: BoxFit.contain,
+                  child: RepaintBoundary(
+                    key: _key,
+                    child: Container(
+                      width: _a4Width,
+                      height: _a4Height,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        image: DecorationImage(
+                          image: MemoryImage(
+                            getIndex(state).imageByte!,
                           ),
+                          fit: BoxFit.contain,
                         ),
-                        child: getIndex(state).isHaveQrCode == false
-                            ? Container()
-                            : GestureDetector(
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      top: getIndex(state).dy!,
-                                      left: getIndex(state).dx!,
-                                      child: QrGeneration(
-                                        sizeQrCode: _sizeQrCode,
-                                        value: widget.url,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                onHorizontalDragUpdate: (drage) => dragged(
-                                  drag: drage,
-                                  state: state,
-                                ),
-                              ),
                       ),
+                      child: getIndex(state).isHaveQrCode == false
+                          ? Container()
+                          : GestureDetector(
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    top: getIndex(state).dy!,
+                                    left: getIndex(state).dx!,
+                                    child: QrGeneration(
+                                      sizeQrCode: _sizeQrCode,
+                                      value: widget.url,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onHorizontalDragUpdate: (drage) => dragged(
+                                drag: drage,
+                                state: state,
+                              ),
+                            ),
                     ),
                   ),
                 ),

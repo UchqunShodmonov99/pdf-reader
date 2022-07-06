@@ -10,6 +10,27 @@ import 'logic/pdf_edit.dart';
 import 'widget/change_page.dart';
 import 'widget/pdf_item.dart';
 
+class PdfEditorPage extends StatelessWidget {
+  final Uint8List? pdf;
+  final String? numberDoc;
+  const PdfEditorPage({
+    Key? key,
+    this.pdf,
+    this.numberDoc,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => EditPdfBloc(),
+      child: PdfEditor(
+        numberDoc: numberDoc,
+        pdf: pdf,
+      ),
+    );
+  }
+}
+
 class PdfEditor extends StatefulWidget {
   final Uint8List? pdf;
   final String? numberDoc;
@@ -34,7 +55,11 @@ class _PdfEditorState extends State<PdfEditor>
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    PdfEdit().getPdfToImage(pdf: widget.pdf, context: context);
+    PdfEdit().getPdfToImage(
+      pdf: widget.pdf,
+      context: context,
+      isInit: true,
+    );
     super.initState();
   }
 
@@ -59,35 +84,40 @@ class _PdfEditorState extends State<PdfEditor>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F1F2),
-      body: BlocBuilder<EditPdfBloc, EditPdfState>(
-        builder: (context, state) {
-          if (state is EditPdfSuccess) {
-            if (state.list!.isEmpty) {
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF0F1F2),
+        body: BlocBuilder<EditPdfBloc, EditPdfState>(
+          builder: (context, state) {
+            if (state is EditPdfSuccess) {
+              if (state.list!.isEmpty) {
+                return const Center(
+                  child: CupertinoActivityIndicator(),
+                );
+              }
+              return Column(
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Expanded(
+                    child: PdfItem(
+                      url: url,
+                    ),
+                  ),
+                  ChangePageWidget(state: state),
+                ],
+              );
+            } else {
               return const Center(
                 child: CupertinoActivityIndicator(),
               );
             }
-            return Column(
-              children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                Expanded(
-                  child: PdfItem(
-                    url: url,
-                  ),
-                ),
-                ChangePageWidget(state: state),
-              ],
-            );
-          } else {
-            return const Center(
-              child: CupertinoActivityIndicator(),
-            );
-          }
-        },
+          },
+        ),
       ),
     );
   }

@@ -52,18 +52,23 @@ class ChangePageWidget extends StatelessWidget {
               if (next!) {
                 if (state.currentIndex! < state.list!.length - 1) {
                   index = state.currentIndex! + 1;
+                } else {
+                  index = -1;
                 }
               } else {
                 if (state.currentIndex! - 1 >= 0) {
                   index = state.currentIndex! - 1;
+                } else {
+                  index = -1;
                 }
               }
-
-              BlocProvider.of<EditPdfBloc>(context!).add(
-                ChangePage(
-                  currentIndex: index,
-                ),
-              );
+              if (index >= 0) {
+                BlocProvider.of<EditPdfBloc>(context!).add(
+                  ChangePage(
+                    currentIndex: index,
+                  ),
+                );
+              }
             },
       icon: next!
           ? Transform.rotate(
