@@ -14,7 +14,7 @@ import '../bloc/edit_pdf_bloc.dart';
 class PdfEdit {
   final double _a4Width = pdf.PdfPageFormat.a4.width;
   final double _a4Height = pdf.PdfPageFormat.a4.height;
-  void savePdf({
+  Future<bool> savePdf({
     required EditPdfSuccess? state,
     required GlobalKey? key,
     required BuildContext? context,
@@ -23,7 +23,7 @@ class PdfEdit {
     final pdfFile = pw.Document();
     final boundary =
         key!.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    final image = await boundary?.toImage(pixelRatio: 5);
+    final image = await boundary?.toImage(pixelRatio: 4);
     final byteData = await image?.toByteData(format: ImageByteFormat.png);
     final imageBytes = byteData?.buffer.asUint8List();
     if (imageBytes != null) {
@@ -58,13 +58,14 @@ class PdfEdit {
         );
       }
     }
+    return false;
   }
 
   Size getSize(GlobalKey key) {
     return key.currentContext!.size!;
   }
 
-  void getPdfToImage({
+  Future<bool> getPdfToImage({
     BuildContext? context,
     Uint8List? pdf,
     int? currentIndex = 0,
@@ -101,5 +102,6 @@ class PdfEdit {
     }
 
     document.close();
+    return false;
   }
 }

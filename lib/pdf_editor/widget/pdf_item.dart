@@ -22,6 +22,7 @@ class _PdfItemState extends State<PdfItem> {
   final double _a4Width = pdf.PdfPageFormat.a4.width;
   final double _a4Height = pdf.PdfPageFormat.a4.height;
   final _key = GlobalKey();
+  bool _loading = false;
 
   Widget _appBar(EditPdfSuccess state, BuildContext context) {
     return Column(
@@ -33,7 +34,7 @@ class _PdfItemState extends State<PdfItem> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () {
+                onPressed: () async {
                   if (getIndex(state).isHaveQrCode!) {
                     BlocProvider.of<EditPdfBloc>(context).add(
                       EditQrCode(
@@ -43,12 +44,16 @@ class _PdfItemState extends State<PdfItem> {
                     );
                   } else {
                     if (state.listOld != state.list) {
-                      PdfEdit().savePdf(
+                      _loading = true;
+                      setState(() {});
+                      var mm = await PdfEdit().savePdf(
                         state: state,
                         key: _key,
                         context: context,
                         back: true,
                       );
+                      _loading = mm;
+                      setState(() {});
                     } else {
                       Navigator.pop(context);
                     }
@@ -79,12 +84,17 @@ class _PdfItemState extends State<PdfItem> {
                 ),
               if (getIndex(state).isHaveQrCode!)
                 IconButton(
-                  onPressed: () {
-                    PdfEdit().savePdf(
+                  onPressed: () async {
+                    _loading = true;
+                    setState(() {});
+                    var mm = await PdfEdit().savePdf(
                       state: state,
                       key: _key,
                       context: context,
                     );
+                    setState(() {
+                      _loading = mm;
+                    });
                   },
                   icon: const Icon(
                     Icons.done,
@@ -108,49 +118,66 @@ class _PdfItemState extends State<PdfItem> {
     return BlocBuilder<EditPdfBloc, EditPdfState>(
       builder: (context, state) {
         if (state is EditPdfSuccess) {
-          return Column(
+          return Stack(
             children: [
-              _appBar(state, context),
-              Expanded(
-                child: Center(
-                  child: RepaintBoundary(
-                    key: _key,
-                    child: Container(
-                      width: _a4Width,
-                      height: _a4Height,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        image: DecorationImage(
-                          image: MemoryImage(
-                            getIndex(state).imageByte!,
+              Column(
+                children: [
+                  _appBar(state, context),
+                  Expanded(
+                    child: Center(
+                      child: RepaintBoundary(
+                        key: _key,
+                        child: Container(
+                          width: _a4Width,
+                          height: _a4Height,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            image: DecorationImage(
+                              image: MemoryImage(
+                                getIndex(state).imageByte!,
+                              ),
+                              fit: BoxFit.contain,
+                            ),
                           ),
-                          fit: BoxFit.contain,
+                          child: getIndex(state).isHaveQrCode == false
+                              ? Container()
+                              : GestureDetector(
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        top: getIndex(state).dy!,
+                                        left: getIndex(state).dx!,
+                                        child: QrGeneration(
+                                          sizeQrCode: _sizeQrCode,
+                                          value: widget.url,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onHorizontalDragUpdate: (drage) => dragged(
+                                    drag: drage,
+                                    state: state,
+                                  ),
+                                ),
                         ),
                       ),
-                      child: getIndex(state).isHaveQrCode == false
-                          ? Container()
-                          : GestureDetector(
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: getIndex(state).dy!,
-                                    left: getIndex(state).dx!,
-                                    child: QrGeneration(
-                                      sizeQrCode: _sizeQrCode,
-                                      value: widget.url,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              onHorizontalDragUpdate: (drage) => dragged(
-                                drag: drage,
-                                state: state,
-                              ),
-                            ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_loading)
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    color: Colors.black.withOpacity(0.2),
+                    child: const Center(
+                      child: CupertinoActivityIndicator(
+                        color: Colors.white,
+                        radius: 20,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           );
         } else {
