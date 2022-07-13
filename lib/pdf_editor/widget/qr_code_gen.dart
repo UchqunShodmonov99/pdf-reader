@@ -1,5 +1,5 @@
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
 class QrGeneration extends StatelessWidget {
   final double? sizeQrCode;
@@ -8,13 +8,13 @@ class QrGeneration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: sizeQrCode,
-      height: sizeQrCode,
-      child: SfBarcodeGenerator(
-        value: value,
-        symbology: QRCode(),
+    return BarcodeWidget(
+      barcode: Barcode.qrCode(
+        errorCorrectLevel: BarcodeQRCorrectionLevel.high,
       ),
+      height: sizeQrCode,
+      width: sizeQrCode,
+      data: value!,
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:pdf/pdf.dart' as pdf;
-import 'package:test_pdf/pdf_editor/logic/pdf_edit.dart';
+import 'package:test_pdf/device_info.dart';
+import 'package:test_pdf/pdf_editor/logic/save_pdf/save_pdf_bloc.dart';
 
 import '../bloc/edit_pdf_bloc.dart';
 import 'qr_code_gen.dart';
@@ -18,11 +20,17 @@ class PdfItem extends StatefulWidget {
 }
 
 class _PdfItemState extends State<PdfItem> {
-  final double _sizeQrCode = 75;
+  double _sizeQrCode = 75;
   final double _a4Width = pdf.PdfPageFormat.a4.width;
   final double _a4Height = pdf.PdfPageFormat.a4.height;
   final _key = GlobalKey();
-  bool _loading = false;
+  @override
+  void initState() {
+    if (DeviceInfo().isPhone()) {
+      _sizeQrCode = 58;
+    }
+    super.initState();
+  }
 
   Widget _appBar(EditPdfSuccess state, BuildContext context) {
     return Column(
@@ -43,26 +51,24 @@ class _PdfItemState extends State<PdfItem> {
                       ),
                     );
                   } else {
-                    if (state.listOld != state.list) {
-                      _loading = true;
-                      setState(() {});
-                      var mm = await PdfEdit().savePdf(
+                    BlocProvider.of<SavePdfBloc>(context).add(
+                      ChangePdfSave(
                         state: state,
                         key: _key,
                         context: context,
                         back: true,
-                      );
-                      _loading = mm;
-                      setState(() {});
-                    } else {
-                      Navigator.pop(context);
-                    }
+                        sizeQrCode: _sizeQrCode,
+                        valueQrCode: widget.url,
+                      ),
+                    );
                   }
                 },
-                icon: const Icon(
-                  Icons.close,
-                  color: Color(0xFF313234),
-                  size: 30,
+                icon: Icon(
+                  getIndex(state).isHaveQrCode!
+                      ? Icons.close
+                      : Icons.arrow_back_ios,
+                  color: const Color(0xFF313234),
+                  size: 25,
                 ),
               ),
               const Spacer(),
@@ -85,16 +91,16 @@ class _PdfItemState extends State<PdfItem> {
               if (getIndex(state).isHaveQrCode!)
                 IconButton(
                   onPressed: () async {
-                    _loading = true;
-                    setState(() {});
-                    var mm = await PdfEdit().savePdf(
-                      state: state,
-                      key: _key,
-                      context: context,
+                    BlocProvider.of<SavePdfBloc>(context).add(
+                      ChangePdfSave(
+                        state: state,
+                        key: _key,
+                        context: context,
+                        back: false,
+                        sizeQrCode: _sizeQrCode,
+                        valueQrCode: widget.url,
+                      ),
                     );
-                    setState(() {
-                      _loading = mm;
-                    });
                   },
                   icon: const Icon(
                     Icons.done,
@@ -118,66 +124,49 @@ class _PdfItemState extends State<PdfItem> {
     return BlocBuilder<EditPdfBloc, EditPdfState>(
       builder: (context, state) {
         if (state is EditPdfSuccess) {
-          return Stack(
+          return Column(
             children: [
-              Column(
-                children: [
-                  _appBar(state, context),
-                  Expanded(
-                    child: Center(
-                      child: RepaintBoundary(
-                        key: _key,
-                        child: Container(
-                          width: _a4Width,
-                          height: _a4Height,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            image: DecorationImage(
-                              image: MemoryImage(
-                                getIndex(state).imageByte!,
-                              ),
-                              fit: BoxFit.contain,
-                            ),
+              _appBar(state, context),
+              Expanded(
+                child: Center(
+                  child: RepaintBoundary(
+                    key: _key,
+                    child: Container(
+                      width: _a4Width,
+                      height: _a4Height,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        image: DecorationImage(
+                          image: MemoryImage(
+                            getIndex(state).imageByte!,
                           ),
-                          child: getIndex(state).isHaveQrCode == false
-                              ? Container()
-                              : GestureDetector(
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        top: getIndex(state).dy!,
-                                        left: getIndex(state).dx!,
-                                        child: QrGeneration(
-                                          sizeQrCode: _sizeQrCode,
-                                          value: widget.url,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  onHorizontalDragUpdate: (drage) => dragged(
-                                    drag: drage,
-                                    state: state,
-                                  ),
-                                ),
+                          fit: BoxFit.contain,
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              if (_loading)
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    color: Colors.black.withOpacity(0.2),
-                    child: const Center(
-                      child: CupertinoActivityIndicator(
-                        color: Colors.white,
-                        radius: 20,
-                      ),
+                      child: getIndex(state).isHaveQrCode == false
+                          ? Container()
+                          : GestureDetector(
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    top: getIndex(state).dy!,
+                                    left: getIndex(state).dx!,
+                                    child: QrGeneration(
+                                      sizeQrCode: _sizeQrCode,
+                                      value: widget.url,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onHorizontalDragUpdate: (drage) => dragged(
+                                drag: drage,
+                                state: state,
+                              ),
+                            ),
                     ),
                   ),
                 ),
+              ),
             ],
           );
         } else {

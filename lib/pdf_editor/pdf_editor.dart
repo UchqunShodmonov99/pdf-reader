@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:test_pdf/device_info.dart';
-import 'package:test_pdf/pdf_editor/bloc/edit_pdf_bloc.dart';
 
+import 'bloc/edit_pdf_bloc.dart';
 import 'logic/pdf_edit.dart';
+import 'logic/save_pdf/save_pdf_bloc.dart';
 import 'widget/change_page.dart';
 import 'widget/pdf_item.dart';
 
@@ -15,14 +16,21 @@ class PdfEditorPage extends StatelessWidget {
   final String? numberDoc;
   const PdfEditorPage({
     Key? key,
-    this.pdf,
-    this.numberDoc,
+    required this.pdf,
+    required this.numberDoc,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => EditPdfBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => EditPdfBloc(),
+        ),
+        BlocProvider(
+          create: (context) => SavePdfBloc(),
+        ),
+      ],
       child: PdfEditor(
         numberDoc: numberDoc,
         pdf: pdf,
@@ -84,41 +92,57 @@ class _PdfEditorState extends State<PdfEditor>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF0F1F2),
-        body: BlocBuilder<EditPdfBloc, EditPdfState>(
-          builder: (context, state) {
-            if (state is EditPdfSuccess) {
-              if (state.list!.isEmpty) {
-                return const Center(
-                  child: CupertinoActivityIndicator(),
-                );
-              }
-              return Column(
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                    child: PdfItem(
-                      url: url,
+    return BlocBuilder<SavePdfBloc, SavePdfState>(
+      builder: (context, stateSave) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF0F1F2),
+          body: Stack(
+            children: [
+              BlocBuilder<EditPdfBloc, EditPdfState>(
+                builder: (context, state) {
+                  if (state is EditPdfSuccess) {
+                    if (state.list!.isEmpty) {
+                      return const Center(
+                        child: CupertinoActivityIndicator(),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Expanded(
+                          child: PdfItem(
+                            url: url,
+                          ),
+                        ),
+                        ChangePageWidget(state: state),
+                      ],
+                    );
+                  } else {
+                    return const Center(
+                      child: CupertinoActivityIndicator(),
+                    );
+                  }
+                },
+              ),
+              if (stateSave is SavePdfLoading)
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    color: Colors.black.withOpacity(0.2),
+                    child: const Center(
+                      child: CupertinoActivityIndicator(
+                        color: Colors.white,
+                        radius: 20,
+                      ),
                     ),
                   ),
-                  ChangePageWidget(state: state),
-                ],
-              );
-            } else {
-              return const Center(
-                child: CupertinoActivityIndicator(),
-              );
-            }
-          },
-        ),
-      ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

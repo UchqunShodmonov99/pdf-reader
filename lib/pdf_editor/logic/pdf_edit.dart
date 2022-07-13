@@ -1,9 +1,7 @@
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf/pdf.dart' as pdf;
 import 'package:pdf/widgets.dart' as pw;
@@ -18,45 +16,67 @@ class PdfEdit {
     required EditPdfSuccess? state,
     required GlobalKey? key,
     required BuildContext? context,
+    required String? valueQrCode,
+    required double? sizeQrCode,
     bool? back = false,
   }) async {
     final pdfFile = pw.Document();
-    final boundary =
-        key!.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    final image = await boundary?.toImage(pixelRatio: 4);
-    final byteData = await image?.toByteData(format: ImageByteFormat.png);
-    final imageBytes = byteData?.buffer.asUint8List();
-    if (imageBytes != null) {
-      for (var item in state!.list!) {
-        pdfFile.addPage(
-          pw.Page(
-            pageFormat: pdf.PdfPageFormat(
-              _a4Width,
-              _a4Height,
-            ),
-            build: (context) {
-              return pw.Expanded(
-                child: pw.Image(
-                  pw.MemoryImage(
-                    item.isHaveQrCode! ? imageBytes : item.imageByte!,
-                  ),
+    // final boundary =
+    //     key!.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    // final image = await boundary?.toImage(pixelRatio: 10);
+    // final byteData = await image?.toByteData(format: ImageByteFormat.png);
+    // final imageBytes = byteData?.buffer.asUint8List();
+    // if (imageBytes != null) {
+
+    // }
+    for (var item in state!.list!) {
+      pdfFile.addPage(
+        pw.Page(
+          pageFormat: pdf.PdfPageFormat(
+            getSize(key!).width,
+            getSize(key).height,
+          ),
+          margin: pw.EdgeInsets.zero,
+          build: (context) {
+            return pw.Container(
+              width: _a4Width,
+              height: _a4Height,
+              decoration: pw.BoxDecoration(
+                image: pw.DecorationImage(
+                  image: pw.MemoryImage(item.imageByte!),
                   fit: pw.BoxFit.contain,
                 ),
-              );
-            },
-          ),
-        );
-      }
-      Uint8List _file = await pdfFile.save();
-      if (back!) {
-        Navigator.pop(context!, _file);
-      } else {
-        getPdfToImage(
-          context: context,
-          pdf: _file,
-          currentIndex: state.currentIndex,
-        );
-      }
+              ),
+              child: pw.Stack(
+                children: [
+                  if (item.isHaveQrCode!)
+                    pw.Positioned(
+                      top: getIndex(state).dy,
+                      left: getIndex(state).dx,
+                      child: pw.BarcodeWidget(
+                        color: pdf.PdfColor.fromHex("#000000"),
+                        barcode: pw.Barcode.qrCode(),
+                        data: valueQrCode!,
+                        height: sizeQrCode,
+                        width: sizeQrCode,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    }
+    Uint8List _file = await pdfFile.save();
+    if (back!) {
+      Navigator.pop(context!, _file);
+    } else {
+      getPdfToImage(
+        context: context,
+        pdf: _file,
+        currentIndex: state.currentIndex,
+      );
     }
     return false;
   }
@@ -103,5 +123,9 @@ class PdfEdit {
 
     document.close();
     return false;
+  }
+
+  QrCodePostion getIndex(EditPdfSuccess state) {
+    return state.list![state.currentIndex!];
   }
 }
